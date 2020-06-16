@@ -28,8 +28,8 @@ class Player {
 		return files[Math.floor(Math.random() * files.length)];
 	}
  
-	play: function() {
-		const soundIndex = this.index;
+	play = () => {
+		const soundIndex = this.pickSound(this.sounds);
 		const soundFile = this.sounds[soundIndex];
 		let sound;
 
@@ -105,7 +105,9 @@ tracking.track('#video', tracker, { camera: true });
 tracker.on('track', (event) => {
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  debounceHelperFunc(startTracking(event.data), 2000)
+  debounceHelperFunc(startTracking(event.data), 2000);
+
+  soundPlayer.play();
 
 });
 
