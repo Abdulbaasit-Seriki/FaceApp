@@ -30,11 +30,7 @@ class Player {
  
 	async playSound () {
 
-		if (this.isPlaying() === false) {
-	    	this.stopSound();	
-	    }
-
-		const soundIndex = this.index;
+		const soundIndex = this.sounds[Math.floor(Math.random() * 3)];
 		const soundFile = this.sounds[soundIndex];
 		let sound;
 
@@ -43,19 +39,24 @@ class Player {
 			sound = soundFile.howl;
 		} // Else load up a new sound
 		else {
-			this.sound = new Audio(`./audio/${soundFile.file}.mp3`);
-			this.sound.play();
 
+			try {
+				this.sound = new Audio(`./audio/${soundFile.file}.mp3`);
+				const playPromise = await this.sound.play();
+			} catch (err) {
+				// Show DOM to prevent playing
+				console.log(err);
+			}
 			soundFile.howl = this.sound;
 		}
 	}
 
-	stopSound () {
+	async stopSound () {
 		this.sound.pause();
 		this.sound.currentTime = 0;
 	}
 
-	isPlaying () {
+	async isPlaying () {
 		return this.sound
 	        && this.currentTime > 0
 	        && !this.sound.paused
@@ -76,12 +77,17 @@ tracking.initUserMedia_ = async () => {
 	}
 }
 
-const startTracking = (event) => {
+const startTracking = async (event) => {
 
 	if (event.length === 0) {
 
 	    // No objects were detected in this frame.
-	    console.log(`Put your face in the frame`); 
+		console.log(`Put your face in the frame`); 
+			
+		if ( await soundPlayer.isPlaying() === false) {
+			await soundPlayer.stopSound();	
+		}
+
   	} else {
 
 	    event.forEach( (rect) => {
