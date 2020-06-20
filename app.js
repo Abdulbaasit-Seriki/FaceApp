@@ -24,12 +24,17 @@ class Player {
 		this.index = 0;
 	}
 
-	pickSound = (files) => {
+	pickSound (files) {
 		return files[Math.floor(Math.random() * files.length)];
 	}
  
-	play = () => {
-		const soundIndex = this.pickSound(this.sounds);
+	async playSound () {
+
+		if (this.isPlaying() === false) {
+	    	this.stopSound();	
+	    }
+
+		const soundIndex = this.index;
 		const soundFile = this.sounds[soundIndex];
 		let sound;
 
@@ -38,16 +43,24 @@ class Player {
 			sound = soundFile.howl;
 		} // Else load up a new sound
 		else {
-			sound = new Howl({
-				src: [`./audio/${soundFile.file}.webm`, `./audio/${soundFile.file}.mp3`],
-				html5: true,
-				onplay: function() {
-					console.log(`Playing ${soundFile.title}....`)
-				}
-			})
-			soundFile.howl = sound;
-		}
+			this.sound = new Audio(`./audio/${soundFile.file}.mp3`);
+			this.sound.play();
 
+			soundFile.howl = this.sound;
+		}
+	}
+
+	stopSound () {
+		this.sound.pause();
+		this.sound.currentTime = 0;
+	}
+
+	isPlaying () {
+		return this.sound
+	        && this.currentTime > 0
+	        && !this.sound.paused
+	        && !this.sound.ended
+	        && this.sound.readyState > 2;
 	}
 }
 
@@ -64,16 +77,20 @@ tracking.initUserMedia_ = async () => {
 }
 
 const startTracking = (event) => {
+
 	if (event.length === 0) {
-    // No objects were detected in this frame.
-    console.log(`Put your face in the frame`)
-  } else {
-    event.forEach( (rect) => {
-      // console.log(rect)
-      context.strokeStyle = '#fff';
-      context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-    });
-  }
+
+	    // No objects were detected in this frame.
+	    console.log(`Put your face in the frame`); 
+  	} else {
+
+	    event.forEach( (rect) => {
+	    	soundPlayer.playSound();
+
+	        context.strokeStyle = '#fff';
+	        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+	    });
+  	}
 }
 
 const soundPlayer = new Player ([
@@ -102,12 +119,8 @@ tracker.setEdgesDensity(0.1);
 
 tracking.track('#video', tracker, { camera: true });
 
+
 tracker.on('track', (event) => {
-
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  debounceHelperFunc(startTracking(event.data), 2000);
-
-  soundPlayer.play();
-
-});
-
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	debounceHelperFunc(startTracking(event.data), 5000);
+})
