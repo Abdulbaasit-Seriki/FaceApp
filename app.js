@@ -39,14 +39,13 @@ class Player {
 			this.sound = soundFile.howl;
 		} // Else load up a new sound
 		else {
-			this.sound = new Audio(`./audio/${soundFile.file}.mp3`);
 			try {
-				await this.sound.play();
-			}
-			catch(err) {
+				this.sound = new Audio(`./audio/${soundFile.file}.mp3`);
+				const playPromise = await this.sound.play();
+			} catch (err) {
+				// Show DOM to prevent playing
 				console.log(err);
 			}
-
 			soundFile.howl = this.sound;
 		}
 	}
@@ -57,7 +56,7 @@ class Player {
 		this.sound.currentTime = 0;
 	}
 
-	isPlaying () {
+	async isPlaying () {
 		return this.sound
 	        && this.currentTime > 0
 	        && !this.sound.paused
@@ -87,8 +86,6 @@ const startTracking = async (event) => {
 
 		if (soundPlayer.isPlaying() === false) {
 			soundPlayer.stopSound();	
-	    }
-
   	} else {
 
 	    event.forEach( async (rect) => {
